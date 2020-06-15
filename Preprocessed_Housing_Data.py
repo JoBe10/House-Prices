@@ -25,5 +25,26 @@ uqr = np.percentile(train.SalePrice, 75)
 # There seem to be big differences in sales prices across neighborhoods
 
 # Separate the neighborhoods into three groups: below IQR, within IQR and above IQR
-print(train.isna().any())
+# Create empty lists that will be filled with neighborhoods belonging to the respective groups
+below_lqr = []
+in_iqr = []
+above_uqr = []
+
+# Loop through the neighborhoods and append to the correct group based on average sales price
+neighborhoods = train.groupby('Neighborhood').SalePrice.mean()
+for i in neighborhoods.keys():
+    if neighborhoods[i] < lqr:
+        below_lqr.append(i)
+    elif neighborhoods[i] < uqr:
+        in_iqr.append(i)
+    else:
+        above_uqr.append(i)
+
+# Create new column for the neighborhood group
+train['neighborhood_group'] = train.Neighborhood.apply(lambda x: 0 if x in below_lqr else (1 if x in in_iqr else 2))
+print(train.neighborhood_group.value_counts())
+
+
+
+
 
