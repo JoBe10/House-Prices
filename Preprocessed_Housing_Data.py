@@ -42,9 +42,22 @@ for i in neighborhoods.keys():
 
 # Create new column for the neighborhood group
 train['neighborhood_group'] = train.Neighborhood.apply(lambda x: 0 if x in below_lqr else (1 if x in in_iqr else 2))
-print(train.neighborhood_group.value_counts())
 
+# Inspect statistics about years built
+print(train.YearBuilt.describe())
 
+# Let's create 4 groups based on year built: After 2000, between 1973 and 2000, between 1954 and 1973 and before 1954
+# Obtain the quartiles of YearBuilt
+yb_uqr = np.percentile(train.YearBuilt, 75)
+yb_med = np.percentile(train.YearBuilt, 50)
+yb_lqr = np.percentile(train.YearBuilt, 25)
+
+# Create new column for the year group
+train['year_group'] = train.YearBuilt.apply(lambda x: 0 if x < yb_lqr else (1 if x < yb_med else(2 if x < yb_uqr else 3)))
+
+# Check to see whether there is a difference in sales prices between the groups
+print(train.groupby('year_group').SalePrice.mean())
+# It seems as though the newer the house the higher the sales price
 
 
 
