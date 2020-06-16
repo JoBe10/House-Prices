@@ -11,6 +11,12 @@ train = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/CSVs/tr
 # print(train.info())
 # print(train.describe())
 
+# Get list of all columns that have NaNs
+nas = train.columns[train.isna().any()].tolist()
+print(nas)
+# There is too many to worry about them now
+# Later, if a feature is considered in the regression and it appears in this list we will deal with the NaNs
+
 # Get a sense of the target value
 # print(train.SalePrice.describe())
 # Median sales price is 163k and IQR is between 129k to 214k
@@ -99,6 +105,13 @@ train['dwelling'] = train.MSSubClass.apply(lambda x: 0 if x in low_dw else (1 if
 # print(train.dwelling.value_counts())
 # So far so good
 
+# Inspect differences in average sales prices by zone
+# print(train.groupby('MSZoning').SalePrice.mean())
+# print(train.MSZoning.value_counts())
+# C has an extremely low average sales price, FV and RL a really high one and the rest is somewhere in the middle
+
+# Create new column for groups of the zones
+train['zone_group'] = train.MSZoning.apply(lambda x: 3 if x == 'FV' else (2 if x == 'RL' else(0 if x == 'C (all)' else 1)))
 
 
 
