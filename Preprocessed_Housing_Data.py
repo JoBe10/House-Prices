@@ -65,6 +65,10 @@ train['year_group'] = train.YearBuilt.apply(lambda x: 0 if x < yb_lqr else (1 if
 # It seems as though the newer the house the higher the sales price
 
 # Another feature that could have a big impact on sales price is whether the house has a pool or not
+train['has_pool'] = train.PoolArea.apply(lambda x: 1 if x > 0 else 0)
+#print(train.has_pool.value_counts())
+# Unfortunately there are only few houses with pools, limiting the "power" of thsi feature
+
 
 
 
