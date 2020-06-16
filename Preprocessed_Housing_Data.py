@@ -69,6 +69,37 @@ train['has_pool'] = train.PoolArea.apply(lambda x: 1 if x > 0 else 0)
 #print(train.has_pool.value_counts())
 # Unfortunately there are only few houses with pools, limiting the "power" of thsi feature
 
+# Let's inspect  differences in type of dwelling
+# print(train.groupby('MSSubClass').SalePrice.mean())
+# 20, 60, 75 and 120 seem to be sought after, 30, 180, 190 and 45 not so much
+# Group them according to average sale price with the average being either > 190k, < 130k or in between
+
+# Store the average sales prices per dwelling type
+dwellings = train.groupby('MSSubClass').SalePrice.mean()
+
+# Create empty lists to be filled with the dwelling types that fall in the different categories
+high_dw = []
+med_dw = []
+low_dw = []
+
+# Loop through the dwelling keys and fill the above lists
+for i in dwellings.keys():
+    if dwellings[i] < 130000:
+        low_dw.append(i)
+    elif dwellings[i] < 190000:
+        med_dw.append(i)
+    else:
+        high_dw.append(i)
+
+# Create new column for the different groups of dwellings
+train['dwelling'] = train.MSSubClass.apply(lambda x: 0 if x in low_dw else (1 if x in med_dw else 2))
+
+# Check to make sure there is a difference in average sales price between the groups
+# print(train.groupby('dwelling').SalePrice.mean())
+# print(train.dwelling.value_counts())
+# So far so good
+
+
 
 
 
