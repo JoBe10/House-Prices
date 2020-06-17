@@ -113,6 +113,32 @@ train['dwelling'] = train.MSSubClass.apply(lambda x: 0 if x in low_dw else (1 if
 # Create new column for groups of the zones
 train['zone_group'] = train.MSZoning.apply(lambda x: 3 if x == 'FV' else (2 if x == 'RL' else(0 if x == 'C (all)' else 1)))
 
+# Inspect the different building types
+print(train.groupby('BldgType').SalePrice.mean())
+print(train.BldgType.value_counts())
+# Single-family and Townhouse end units seem to be selling for more
+
+# Create a column with 1s for 1Fam and TwnhsE and 0 for all others
+train['type_group'] = train.BldgType.apply(lambda x: 1 if x == ('1Fam' or 'TwnhsE') else 0)
+print(train.groupby('type_group').SalePrice.mean())
+
+# Inspect style of building
+# print(train.groupby('HouseStyle').SalePrice.mean())
+# print(train.HouseStyle.value_counts())
+# 2 Story and 2.5Fin have substantially higher sales prices than most others
+
+# Split the styles into three groups, one for two story with the second story finished, one for one story and one for everything else
+train['style_group'] = train.HouseStyle.apply(lambda x: 2 if x == ('2Story' or '2. 5Fin') else (1 if x == '1Story' else 0))
+
+# Just out of interest, what would the combination of 1Fam and 2Story look like
+# Because we are basing this column on two other columns we need to define a function that we can feed into apply
+def type_style(x):
+    if (x['BldgType'] == '1Fam' and x['HouseStyle'] == '2Story'):
+        return 1
+    else:
+        return 0
+train['1f2s'] = train.apply(type_style, axis=1)
+print(train['1f2s'].value_counts())
 
 
 
