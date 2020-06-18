@@ -146,19 +146,22 @@ train['one_fam_two_story'] = train.apply(type_style, axis=1)
 # Let's say that overall quality and condition matter but the combination is what's most important
 # Create a column that calculates the average of the quality and condition scores
 train['qu_co'] = round((train.OverallQual + train.OverallCond) / 2)
-# print(train.groupby('qu_co').SalePrice.mean())
-# print(train['qu_co'].value_counts())
 
 # Create a column that multiplies the two scores (just to compare later on
 train['qual_cond'] = round((train.OverallQual * train.OverallCond) / 10)
 
+# Inspect differences in average slaes price for different roof styles
 print(train.groupby('RoofStyle').SalePrice.mean())
 print(train['RoofStyle'].value_counts())
+# Shed and hip seem to increase sale prices most, followed by flat and then everything else
 
+# Create a column with groups of roof styles where Shed and Hip have value 2, Flat has 1 and everything else a 0
+train['roof_style'] = train.RoofStyle.apply(lambda x: 2 if x in ['Shed', 'Hip'] else (1 if x == 'Flat' else 0))
+
+# Inspect differences in average slaes price for different roof materials
 # print(train.groupby('RoofMatl').SalePrice.mean())
 # print(train['RoofMatl'].value_counts())
 # Wood and Membrane as roof material seem to drastically increase the sales price
+
 # Create a column with 1s for wood or membrane and 0 for everything else
 train['wood_membrane'] = train.RoofMatl.apply(lambda x: 1 if x in ['Membran', 'WdShake', 'WdShngl'] else 0)
-# print(train.wood_membrane.value_counts())
-# print(train.groupby('wood_membrane').SalePrice.mean())
