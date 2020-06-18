@@ -151,8 +151,8 @@ train['qu_co'] = round((train.OverallQual + train.OverallCond) / 2)
 train['qual_cond'] = round((train.OverallQual * train.OverallCond) / 10)
 
 # Inspect differences in average slaes price for different roof styles
-print(train.groupby('RoofStyle').SalePrice.mean())
-print(train['RoofStyle'].value_counts())
+# print(train.groupby('RoofStyle').SalePrice.mean())
+# print(train['RoofStyle'].value_counts())
 # Shed and hip seem to increase sale prices most, followed by flat and then everything else
 
 # Create a column with groups of roof styles where Shed and Hip have value 2, Flat has 1 and everything else a 0
@@ -165,3 +165,31 @@ train['roof_style'] = train.RoofStyle.apply(lambda x: 2 if x in ['Shed', 'Hip'] 
 
 # Create a column with 1s for wood or membrane and 0 for everything else
 train['wood_membrane'] = train.RoofMatl.apply(lambda x: 1 if x in ['Membran', 'WdShake', 'WdShngl'] else 0)
+
+# Inspect both exterior coverings of houses and the average sale prices related to then
+# print(train.groupby('Exterior1st').SalePrice.mean())
+# print(train['Exterior1st'].value_counts())
+# print(train.groupby('Exterior2nd').SalePrice.mean())
+# print(train['Exterior2nd'].value_counts())
+# Vinyl Siding is not only common but also seems to increase sales prices
+# Other exterior coverings that seem to increase sales prices are: CemntBd, Imstucc, Stone (only when 1st) and BrkFace
+
+# Create a binary column for any VinylSd
+# train['vinyl_side'] = train.apply(lambda x: 1 if (x['Exterior1st'] or x['Exterior2nd']) == 'VinylSd' else 0, axis=1)
+train['vinyl_side'] = train.apply(lambda x: 1 if 'VinylSd' in [x['Exterior1st'], x['Exterior2nd']] else 0, axis=1)
+
+
+# List of exterior coverings to attach value 1 to
+ideal_exterior = ['CemntBd', 'ImStucc', 'BrkFace']
+
+# Function for attaching 1 if either exterior 1 or exterior 2 are in the above list
+def in_ie(x):
+    if (x['Exterior1st'] or x['Exterior2nd']) in ideal_exterior:
+        return 1
+    else:
+        return 0
+
+# Create a binary column for any CemntBd, ImStucc or BrkFace
+train['ideal_ext'] = train.apply(in_ie, axis=1)
+
+
