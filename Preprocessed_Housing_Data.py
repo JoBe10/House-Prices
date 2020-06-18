@@ -127,7 +127,7 @@ train['type_group'] = train.BldgType.apply(lambda x: 1 if x == ('1Fam' or 'Twnhs
 # 2 Story and 2.5Fin have substantially higher sales prices than most others
 
 # Split the styles into three groups, one for two story with the second story finished, one for one story and one for everything else
-train['style_group'] = train.HouseStyle.apply(lambda x: 2 if x == ('2Story' or '2. 5Fin') else (1 if x == '1Story' else 0))
+train['style_group'] = train.HouseStyle.apply(lambda x: 2 if x in ['2Story', '2. 5Fin'] else (1 if x == '1Story' else 0))
 
 # Just out of interest, what would the combination of 1Fam and 2Story look like
 # Because we are basing this column on two other columns we need to define a function that we can feed into apply
@@ -146,9 +146,19 @@ train['one_fam_two_story'] = train.apply(type_style, axis=1)
 # Let's say that overall quality and condition matter but the combination is what's most important
 # Create a column that calculates the average of the quality and condition scores
 train['qu_co'] = round((train.OverallQual + train.OverallCond) / 2)
-print(train.groupby('qu_co').SalePrice.mean())
-print(train['qu_co'].value_counts())
+# print(train.groupby('qu_co').SalePrice.mean())
+# print(train['qu_co'].value_counts())
 
 # Create a column that multiplies the two scores (just to compare later on
 train['qual_cond'] = round((train.OverallQual * train.OverallCond) / 10)
 
+print(train.groupby('RoofStyle').SalePrice.mean())
+print(train['RoofStyle'].value_counts())
+
+# print(train.groupby('RoofMatl').SalePrice.mean())
+# print(train['RoofMatl'].value_counts())
+# Wood and Membrane as roof material seem to drastically increase the sales price
+# Create a column with 1s for wood or membrane and 0 for everything else
+train['wood_membrane'] = train.RoofMatl.apply(lambda x: 1 if x in ['Membran', 'WdShake', 'WdShngl'] else 0)
+# print(train.wood_membrane.value_counts())
+# print(train.groupby('wood_membrane').SalePrice.mean())
