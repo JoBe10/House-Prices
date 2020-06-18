@@ -192,4 +192,34 @@ def in_ie(x):
 # Create a binary column for any CemntBd, ImStucc or BrkFace
 train['ideal_ext'] = train.apply(in_ie, axis=1)
 
+# Do the typical inspection for ExterQual
+# print(train.groupby('ExterQual').SalePrice.mean())
+# print(train['ExterQual'].value_counts())
+# Excellent has a really high average sales price and Good has a decently high average as well
 
+# Create a column with 2 for Ex, 1 for Gd and 0 for everything else
+train['exter_qual'] = train.ExterQual.apply(lambda x: 2 if x == 'Ex' else (1 if x == 'Gd' else 0))
+
+# Do the typical inspection for ExterCond
+# print(train.groupby('ExterCond').SalePrice.mean())
+# print(train['ExterCond'].value_counts())
+# The differences here aren't too great so we'll leave this one out for now
+
+# Do the typical inspection for Foundation
+# print(train.groupby('Foundation').SalePrice.mean())
+# print(train['Foundation'].value_counts())
+# PConc has the highest average sales price and Slab and BrkTil have quite low averages
+
+# Create a column with 2 for PConc, 0 for Slab and BrkTil and 1 otherwise
+train['foundation'] = train.Foundation.apply(lambda x: 2 if x == 'PConc' else (0 if x in ['Slab', 'BrkTil'] else 1))
+
+# Inspect the statistics of TotalBsmtSF
+# print(train['TotalBsmtSF'].describe())
+
+# Get quartiles for basement size
+bs_uqr = np.percentile(train.TotalBsmtSF, 75)
+bs_med = np.percentile(train.TotalBsmtSF, 50)
+bs_lqr = np.percentile(train.TotalBsmtSF, 25)
+
+# Group houses according to the quartile of total basement size they fall into
+train['bsmt_group'] = train.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
