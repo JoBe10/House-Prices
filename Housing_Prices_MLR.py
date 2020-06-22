@@ -1,11 +1,16 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
 # Set the option of displaying all columns (this will be a lot but good for scanning over the information)
 pd.set_option('display.max_columns', None)
 
 # Import csv file
 train = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/CSVs/train.csv')
+test = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/CSVs/test.csv')
 
 # Inspect general information and get some statistics
 # print(train.info())
@@ -229,3 +234,81 @@ x = train.iloc[:,-17:]
 
 # Extract the labels
 y = train[['SalePrice']]
+
+# Split data into train and test data
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
+
+# Create regression model
+mlr = LinearRegression()
+model = mlr.fit(x_train, y_train)
+
+# Make predictions based on the trained model
+y_predict = mlr.predict(x_test)
+
+# Examine the train and test scores
+# print('Train score: ')
+# print(mlr.score(x_train, y_train))
+#
+# print('Test score: ')
+# print(mlr.score(x_test, y_test))
+
+# Show scatter plot of actual vs predicted prices
+# plt.scatter(y_test, y_predict)
+# plt.xlabel('Actual price')
+# plt.ylabel('Predicted price')
+# plt.title('Actual vs. predicted house prices')
+# plt.show()
+
+# Do all the above steps until the training of the model with the test data
+# First, examine which columns have NaNs in the test dataset
+nas = test.columns[test.isna().any()].tolist()
+print(nas)
+# There are more columns with NaNs in the test dataset than in the training dataset
+# These columns will have to be dealt with on a case by case basis
+
+# Inspect how many nas we have in the exterior columns
+# print(test.Exterior1st.isna().sum())
+# print(test.Exterior2nd.isna().sum())
+# There is only one na in each column
+
+# Fill the nas with the most frequent values
+for i in ['Exterior1st', 'Exterior2nd']:
+    test[i] = test[i].fillna(test[i].mode().iloc[0])
+
+
+test['neighborhood_group'] = test.Neighborhood.apply(lambda x: 0 if x in below_lqr else (1 if x in below_med else (2 if x in below_uqr else 3)))
+yb_uqr = np.percentile(test.YearBuilt, 75)
+yb_med = np.percentile(test.YearBuilt, 50)
+yb_lqr = np.percentile(test.YearBuilt, 25)
+test['year_group'] = test.YearBuilt.apply(lambda x: 0 if x < yb_lqr else (1 if x < yb_med else(2 if x < yb_uqr else 3)))
+test['has_pool'] = test.PoolArea.apply(lambda x: 1 if x > 0 else 0)
+test['dwelling'] = test.MSSubClass.apply(lambda x: 0 if x in low_dw else (1 if x in med_dw else 2))
+test['zone_group'] = test.MSZoning.apply(lambda x: 3 if x == 'FV' else (2 if x == 'RL' else(0 if x == 'C (all)' else 1)))
+test['type_group'] = test.BldgType.apply(lambda x: 1 if x == ('1Fam' or 'TwnhsE') else 0)
+test['style_group'] = test.HouseStyle.apply(lambda x: 2 if x in ['2Story', '2. 5Fin'] else (1 if x == '1Story' else 0))
+def type_style(x):
+    if (x['BldgType'] == '1Fam' and x['HouseStyle'] == '2Story'):
+        return 1
+    else:
+        return 0
+test['one_fam_two_story'] = test.apply(type_style, axis=1)
+test['qu_co'] = round((test.OverallQual + test.OverallCond) / 2)
+test['qual_cond'] = round((test.OverallQual * test.OverallCond) / 10)
+test['roof_style'] = test.RoofStyle.apply(lambda x: 2 if x in ['Shed', 'Hip'] else (1 if x == 'Flat' else 0))
+test['wood_membrane'] = test.RoofMatl.apply(lambda x: 1 if x in ['Membran', 'WdShake', 'WdShngl'] else 0)
+test['vinyl_side'] = test.apply(lambda x: 1 if 'VinylSd' in [x['Exterior1st'], x['Exterior2nd']] else 0, axis=1)
+ideal_exterior = ['CemntBd', 'ImStucc', 'BrkFace']
+def in_ie(x):
+    if (x['Exterior1st'] or x['Exterior2nd']) in ideal_exterior:
+        return 1
+    else:
+        return 0
+test['ideal_ext'] = test.apply(in_ie, axis=1)
+test['exter_qual'] = test.ExterQual.apply(lambda x: 2 if x == 'Ex' else (1 if x == 'Gd' else 0))
+test['foundation'] = test.Foundation.apply(lambda x: 2 if x == 'PConc' else (0 if x in ['Slab', 'BrkTil'] else 1))
+bs_uqr = np.percentile(test.TotalBsmtSF, 75)
+bs_med = np.percentile(test.TotalBsmtSF, 50)
+bs_lqr = np.percentile(test.TotalBsmtSF, 25)
+test['bsmt_group'] = test.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
+test_x = test.iloc[:,-17:]
+
