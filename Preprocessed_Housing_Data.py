@@ -223,3 +223,9 @@ bs_lqr = np.percentile(train.TotalBsmtSF, 25)
 
 # Group houses according to the quartile of total basement size they fall into
 train['bsmt_group'] = train.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
+
+# Extract the newly created features
+features = train.iloc[:,-17:]
+
+# Extract the labels
+labels = train['SalePrice']
