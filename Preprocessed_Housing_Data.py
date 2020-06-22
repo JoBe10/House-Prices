@@ -1,5 +1,9 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+import matplotlib.pyplot as plt
 
 # Set the option of displaying all columns (this will be a lot but good for scanning over the information)
 pd.set_option('display.max_columns', None)
@@ -225,7 +229,31 @@ bs_lqr = np.percentile(train.TotalBsmtSF, 25)
 train['bsmt_group'] = train.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
 
 # Extract the newly created features
-features = train.iloc[:,-17:]
+x = train.iloc[:,-17:]
 
 # Extract the labels
-labels = train['SalePrice']
+y = train[['SalePrice']]
+
+# Split data into train and test data
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
+
+# Create regression model
+mlr = LinearRegression()
+model = mlr.fit(x_train, y_train)
+
+# Make predictions based on the trained model
+y_predict = mlr.predict(x_test)
+
+# Examine the train and test scores
+print('Train score: ')
+print(mlr.score(x_train, y_train))
+
+print('Test score: ')
+print(mlr.score(x_test, y_test))
+
+# Show scatter plot of actual vs predicted prices
+plt.scatter(y_test, y_predict)
+plt.xlabel('Actual price')
+plt.ylabel('Predicted price')
+plt.title('Actual vs. predicted house prices')
+plt.show()
