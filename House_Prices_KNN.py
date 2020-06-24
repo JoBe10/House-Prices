@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+from sklearn.neighbors import KNeighborsRegressor
 
 # Set the option of displaying all columns (this will be a lot but good for scanning over the information)
 pd.set_option('display.max_columns', None)
@@ -16,7 +17,7 @@ test = pd.read_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/CSVs/tes
 
 # Get list of all columns that have NaNs
 nas = train.columns[train.isna().any()].tolist()
-print(nas)
+# print(nas)
 # There is too many to worry about them now
 # Later, if a feature is considered in the regression and it appears in this list we will deal with the NaNs
 
@@ -236,6 +237,14 @@ y = train[['SalePrice']]
 # Split data into train and test data
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
 
+# Create and fit the model
+knn = KNeighborsRegressor(n_neighbors = 5, weights = 'distance')
+knn.fit(x_train, y_train)
+
+# Look at the score
+# print(knn.score(x_test, y_test))
+# Seems better than MLR
+
 """This is where the previous transformations are going to be performed on the test dataset"""
 # Do all the above steps until the training of the model with the test data
 # First, examine which columns have NaNs in the test dataset
@@ -299,3 +308,10 @@ test['exter_qual'] = test.ExterQual.apply(lambda x: 2 if x == 'Ex' else (1 if x 
 test['foundation'] = test.Foundation.apply(lambda x: 2 if x == 'PConc' else (0 if x in ['Slab', 'BrkTil'] else 1))
 test['bsmt_group'] = test.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
 test_x = test.iloc[:,-17:]
+
+# Predict sales prices for the test dataset
+test['SalePrice'] = knn.predict(test_x)
+
+submission = test[['Id', 'SalePrice']]
+
+submission.to_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/KNN.csv', index=False)
