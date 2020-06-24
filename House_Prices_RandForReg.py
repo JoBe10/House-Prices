@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor
 
 # Set the option of displaying all columns (this will be a lot but good for scanning over the information)
 pd.set_option('display.max_columns', None)
@@ -238,12 +238,12 @@ y = train[['SalePrice']]
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
 
 # Create and fit the model
-knn = KNeighborsRegressor(n_neighbors = 5, weights = 'distance')
-knn.fit(x_train, y_train)
+rfr = RandomForestRegressor(n_estimators=1000, random_state=0)
+rfr.fit(x_train, y_train.values.ravel())
 
 # Look at the score
-# print(knn.score(x_test, y_test))
-# Seems better than MLR
+print(rfr.score(x_test, y_test))
+# Seems better than MLR and KNN
 
 """This is where the previous transformations are going to be performed on the test dataset"""
 # Do all the above steps until the training of the model with the test data
@@ -310,8 +310,8 @@ test['bsmt_group'] = test.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if
 test_x = test.iloc[:,-17:]
 
 # Predict sales prices for the test dataset
-# test['SalePrice'] = knn.predict(test_x)
-#
-# submission = test[['Id', 'SalePrice']]
-#
-# submission.to_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/KNN.csv', index=False)
+test['SalePrice'] = rfr.predict(test_x)
+
+submission = test[['Id', 'SalePrice']]
+
+submission.to_csv('/Users/Jonas/Desktop/DataScience/Kaggle/HousePrices/RFR.csv', index=False)
