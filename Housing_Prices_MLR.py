@@ -241,33 +241,14 @@ y = train[['SalePrice']]
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
 
 # Create regression model
-# mlr = LinearRegression()
-# model = mlr.fit(x_train, y_train)
-
-# Inspect the statsmodel results
-# X2 = sm.add_constant(x)
-# est = sm.OLS(y, X2)
-# est2 = est.fit()
-# print(est2.summary())
-# There are a number of features that aren't statistically significant and can be removed
-
-# Create a list of columns to drop from the features
-drop_cols = ['year_group', 'qual_cond', 'vinyl_side', 'foundation', 'type_group']
-
-# Drop the above columns and rerun the model and the stats output
-x = x.drop(drop_cols, axis=1)
-
-# Redo train, test split
-x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, random_state=42)
-
 mlr = LinearRegression()
 model = mlr.fit(x_train, y_train)
 
+# Inspect the statsmodel results
 X2 = sm.add_constant(x)
 est = sm.OLS(y, X2)
 est2 = est.fit()
 print(est2.summary())
-# That looks a lot better
 
 # Make predictions based on the trained model
 y_predict = mlr.predict(x_test)
@@ -285,7 +266,6 @@ y_predict = mlr.predict(x_test)
 # plt.ylabel('Predicted price')
 # plt.title('Actual vs. predicted house prices')
 # plt.show()
-
 
 """This is where the previous transformations are going to be performed on the test dataset"""
 # Do all the above steps until the training of the model with the test data
@@ -350,7 +330,7 @@ test['exter_qual'] = test.ExterQual.apply(lambda x: 2 if x == 'Ex' else (1 if x 
 test['foundation'] = test.Foundation.apply(lambda x: 2 if x == 'PConc' else (0 if x in ['Slab', 'BrkTil'] else 1))
 test['bsmt_group'] = test.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
 test_x = test.iloc[:,-17:]
-test_x = test_x.drop(drop_cols, axis=1)
+
 
 test['SalePrice'] = mlr.predict(test_x)
 
