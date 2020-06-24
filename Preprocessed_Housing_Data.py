@@ -229,3 +229,67 @@ x = train.iloc[:,-17:]
 
 # Extract the labels
 y = train[['SalePrice']]
+
+"""This is where the previous transformations are going to be performed on the test dataset"""
+# Do all the above steps until the training of the model with the test data
+# First, examine which columns have NaNs in the test dataset
+nas = test.columns[test.isna().any()].tolist()
+# print(nas)
+# There are more columns with NaNs in the test dataset than in the training dataset
+# These columns will have to be dealt with on a case by case basis
+
+# Inspect how many nas we have in the exterior columns
+# print(test.Exterior1st.isna().sum())
+# print(test.Exterior2nd.isna().sum())
+# There is only one na in each column
+
+# Fill the nas with the most frequent values
+for i in ['Exterior1st', 'Exterior2nd']:
+    test[i] = test[i].fillna(test[i].mode().iloc[0])
+
+# Look at the nas in TotalBsmtSF
+# print(test.TotalBsmtSF.isna().sum())
+# There is only one column with an na
+
+# Just out of curiosity, let's get the row index of that column
+index = test['TotalBsmtSF'].index[test['TotalBsmtSF'].apply(np.isnan)][0]
+
+# Fill the missing value with the median value
+test['TotalBsmtSF'] = test['TotalBsmtSF'].fillna(test['TotalBsmtSF'].median())
+
+# Check to see whether the fillna worked as intended
+# print(test['TotalBsmtSF'].median())
+# print(test.TotalBsmtSF.iloc[index])
+# All good!
+
+test['neighborhood_group'] = test.Neighborhood.apply(lambda x: 0 if x in below_lqr else (1 if x in below_med else (2 if x in below_uqr else 3)))
+yb_uqr = np.percentile(test.YearBuilt, 75)
+yb_med = np.percentile(test.YearBuilt, 50)
+yb_lqr = np.percentile(test.YearBuilt, 25)
+test['year_group'] = test.YearBuilt.apply(lambda x: 0 if x < yb_lqr else (1 if x < yb_med else(2 if x < yb_uqr else 3)))
+test['has_pool'] = test.PoolArea.apply(lambda x: 1 if x > 0 else 0)
+test['dwelling'] = test.MSSubClass.apply(lambda x: 0 if x in low_dw else (1 if x in med_dw else 2))
+test['zone_group'] = test.MSZoning.apply(lambda x: 3 if x == 'FV' else (2 if x == 'RL' else(0 if x == 'C (all)' else 1)))
+test['type_group'] = test.BldgType.apply(lambda x: 1 if x == ('1Fam' or 'TwnhsE') else 0)
+test['style_group'] = test.HouseStyle.apply(lambda x: 2 if x in ['2Story', '2. 5Fin'] else (1 if x == '1Story' else 0))
+def type_style(x):
+    if (x['BldgType'] == '1Fam' and x['HouseStyle'] == '2Story'):
+        return 1
+    else:
+        return 0
+test['one_fam_two_story'] = test.apply(type_style, axis=1)
+test['qu_co'] = round((test.OverallQual + test.OverallCond) / 2)
+test['qual_cond'] = round((test.OverallQual * test.OverallCond) / 10)
+test['roof_style'] = test.RoofStyle.apply(lambda x: 2 if x in ['Shed', 'Hip'] else (1 if x == 'Flat' else 0))
+test['wood_membrane'] = test.RoofMatl.apply(lambda x: 1 if x in ['Membran', 'WdShake', 'WdShngl'] else 0)
+test['vinyl_side'] = test.apply(lambda x: 1 if 'VinylSd' in [x['Exterior1st'], x['Exterior2nd']] else 0, axis=1)
+def in_ie(x):
+    if (x['Exterior1st'] or x['Exterior2nd']) in ideal_exterior:
+        return 1
+    else:
+        return 0
+test['ideal_ext'] = test.apply(in_ie, axis=1)
+test['exter_qual'] = test.ExterQual.apply(lambda x: 2 if x == 'Ex' else (1 if x == 'Gd' else 0))
+test['foundation'] = test.Foundation.apply(lambda x: 2 if x == 'PConc' else (0 if x in ['Slab', 'BrkTil'] else 1))
+test['bsmt_group'] = test.TotalBsmtSF.apply(lambda x: 0 if x < bs_lqr else (1 if x < bs_med else(2 if x < bs_uqr else 3)))
+test_x = test.iloc[:,-17:]
